@@ -11,6 +11,14 @@ namespace ShiftBuilder
 
     public class WorkingShiftOperator
     {
+        /// <summary>
+        /// Calculate time keeping for a duration time based on working dates (check-in and check-out)
+        /// Note: This method does not distinguish working dates. The same dates will be counted.
+        /// </summary>
+        /// <param name="workingShifts"></param>
+        /// <param name="workingDates"></param>
+        /// <param name="shiftOption"></param>
+        /// <returns></returns>
         public TimeKeeping Calculate(IEnumerable<WorkingShift> workingShifts, IEnumerable<WorkingDate> workingDates, ShiftOption? shiftOption = null)
         {
             TimeKeeping total = new();
@@ -22,8 +30,18 @@ namespace ShiftBuilder
 
             return total;
         }
+
+        /// <summary>
+        /// Calculate time keeping for one working date (check-in and check-out)
+        /// </summary>
+        /// <param name="workingShifts"></param>
+        /// <param name="workingDate"></param>
+        /// <param name="shiftOption"></param>
+        /// <returns></returns>
         public TimeKeeping Calculate(IEnumerable<WorkingShift> workingShifts, WorkingDate workingDate, ShiftOption? shiftOption = null)
         {
+            ArgumentNullException.ThrowIfNull(workingDate);
+
             TimeKeeping timeKeeping = new();
 
             DateTime? earliestShiftStartTime;
@@ -83,13 +101,13 @@ namespace ShiftBuilder
             {
                 if (timeKeeping.WorkLate.TotalSeconds > 0 && shiftOption.MaxWorkLateSeconds >= timeKeeping.WorkLate.TotalSeconds)
                 {
-                    timeKeeping.WorkingTime = timeKeeping.WorkingTime.Subtract(TimeSpan.FromSeconds(timeKeeping.WorkLate.TotalSeconds));
+                    timeKeeping.WorkingTime = timeKeeping.WorkingTime.Add(TimeSpan.FromSeconds(timeKeeping.WorkLate.TotalSeconds));
                     timeKeeping.WorkLate = new TimeSpan(0);
                 }
 
-                if (timeKeeping.LeaveEarly.TotalSeconds > 0 && shiftOption.MaxLeaveEarlySeconds >= timeKeeping.WorkLate.TotalSeconds)
+                if (timeKeeping.LeaveEarly.TotalSeconds > 0 && shiftOption.MaxLeaveEarlySeconds >= timeKeeping.LeaveEarly.TotalSeconds)
                 {
-                    timeKeeping.WorkingTime = timeKeeping.WorkingTime.Subtract(TimeSpan.FromSeconds(timeKeeping.LeaveEarly.TotalSeconds));
+                    timeKeeping.WorkingTime = timeKeeping.WorkingTime.Add(TimeSpan.FromSeconds(timeKeeping.LeaveEarly.TotalSeconds));
                     timeKeeping.LeaveEarly = new TimeSpan(0);
                 }
             }
